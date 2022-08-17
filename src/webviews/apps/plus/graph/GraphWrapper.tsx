@@ -134,7 +134,7 @@ const getGraphModel = (
 		});
 	}
 
-	if (workDirStats !== undefined && Object.keys(workDirStats).length > 0) {
+	if (workDirStats !== undefined && Object.values(workDirStats).some((value: number) => value > 0)) {
 		graphRows.unshift({
 			sha: 'work-dir-changes',
 			parents: headRefSha === undefined ? [] : [headRefSha],

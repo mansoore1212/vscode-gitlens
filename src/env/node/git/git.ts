@@ -1053,10 +1053,6 @@ export class Git {
 			params.push('-o');
 		}
 
-		if (fileName) {
-			params.push(fileName);
-		}
-
 		if (deleted) {
 			params.push('--deleted');
 		}
@@ -1077,10 +1073,13 @@ export class Git {
 			params.push('-t');
 		}
 
+		if (fileName) {
+			params.push('--', fileName);
+		}
+
 		const data = await this.git<string>(
 			{ cwd: repoPath, errors: GitErrorHandling.Ignore },
 			...params,
-			'--',
 		);
 		return data.length === 0 ? undefined : data.trim();
 	}
