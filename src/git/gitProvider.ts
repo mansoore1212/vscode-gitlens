@@ -21,6 +21,7 @@ import type { GitStatus, GitStatusFile } from './models/status';
 import type { GitTag, TagSortOptions } from './models/tag';
 import type { GitTreeEntry } from './models/tree';
 import type { GitUser } from './models/user';
+import type { GitWorkDirStats } from './models/workDirStats';
 import type { GitWorktree } from './models/worktree';
 import type { RemoteProviders } from './remotes/factory';
 import type { RemoteProvider, RichRemoteProvider } from './remotes/provider';
@@ -366,6 +367,7 @@ export interface GitProvider extends Disposable {
 	): Promise<PagedResult<GitTag>>;
 	getTreeEntryForRevision(repoPath: string, path: string, ref: string): Promise<GitTreeEntry | undefined>;
 	getTreeForRevision(repoPath: string, ref: string): Promise<GitTreeEntry[]>;
+	getWorkDirStats(repoPath: string | undefined): Promise<GitWorkDirStats | undefined>;
 
 	hasBranchOrTag(
 		repoPath: string | undefined,

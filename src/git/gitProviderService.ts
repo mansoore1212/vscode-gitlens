@@ -63,6 +63,7 @@ import type { GitStatus, GitStatusFile } from './models/status';
 import type { GitTag, TagSortOptions } from './models/tag';
 import type { GitTreeEntry } from './models/tree';
 import type { GitUser } from './models/user';
+import type { GitWorkDirStats } from './models/workDirStats';
 import type { GitWorktree } from './models/worktree';
 import type { RemoteProviders } from './remotes/factory';
 import type { RemoteProvider, RichRemoteProvider } from './remotes/provider';
@@ -2289,6 +2290,15 @@ export class GitProviderService implements Disposable {
 	getOrOpenScmRepository(repoPath: string): Promise<ScmRepository | undefined> {
 		const { provider, path } = this.getProvider(repoPath);
 		return provider.getOrOpenScmRepository(path);
+	}
+
+	@gate()
+	@log()
+	async getWorkDirStats(repoPath: string | Uri | undefined): Promise<GitWorkDirStats | undefined> {
+		if (repoPath == null) return undefined;
+
+		const { provider, path } = this.getProvider(repoPath);
+		return provider.getWorkDirStats(path);
 	}
 
 	static getEncoding(uri: Uri): string {

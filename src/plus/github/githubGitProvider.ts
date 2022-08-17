@@ -51,6 +51,7 @@ import { GitTag, sortTags } from '../../git/models/tag';
 import type { GitTreeEntry } from '../../git/models/tree';
 import type { GitUser } from '../../git/models/user';
 import { isUserMatch } from '../../git/models/user';
+import type { GitWorkDirStats } from '../../git/models/workDirStats';
 import type { RemoteProviders } from '../../git/remotes/factory';
 import { RemoteProviderFactory } from '../../git/remotes/factory';
 import type { RemoteProvider, RichRemoteProvider } from '../../git/remotes/provider';
@@ -2687,6 +2688,11 @@ export class GitHubGitProvider implements GitProvider, Disposable {
 		if (ref == null) debugger;
 
 		return ref;
+	}
+
+	@log()
+	async getWorkDirStats(_repoPath: string | undefined): Promise<GitWorkDirStats | undefined> {
+		return undefined;
 	}
 }
 

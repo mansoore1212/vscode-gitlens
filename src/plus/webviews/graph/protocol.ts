@@ -12,6 +12,7 @@ export interface State {
 	branches?: GraphBranch[];
 	log?: GraphLog;
 	nonce?: string;
+	workDirStats?: GraphWorkDirStats;
 	mixedColumnColors?: { [variable: string]: string };
 	previewBanner?: boolean;
 }
@@ -28,6 +29,7 @@ export type GraphCommit = Record<string, any>;
 export type GraphRemote = Remote;
 export type GraphTag = Record<string, any>;
 export type GraphBranch = Record<string, any>;
+export type GraphWorkDirStats = Record<string, any>;
 
 export interface GraphCompositeConfig extends GraphConfig {
 	columns?: {

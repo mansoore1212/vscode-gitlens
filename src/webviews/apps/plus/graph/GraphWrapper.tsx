@@ -7,6 +7,7 @@ import GraphContainer, {
 	type Head,
 	type Remote,
 	type Tag,
+    type WorkDirStats
 } from '@gitkraken/gitkraken-components';
 import type { ReactElement } from 'react';
 import React, { createElement, useEffect, useRef, useState } from 'react';
@@ -19,6 +20,7 @@ import type {
 	GraphRemote,
 	GraphRepository,
 	GraphTag,
+	GraphWorkDirStats,
 	State,
 } from '../../../../plus/webviews/graph/protocol';
 
@@ -69,6 +71,7 @@ const getGraphModel = (
 	gitRemotes: GraphRemote[] = [],
 	gitTags: GraphTag[] = [],
 	gitBranches: GraphBranch[] = [],
+	workDirStats: GraphWorkDirStats | undefined,
 ): GraphRow[] => {
 	const graphRows: GraphRow[] = [];
 
@@ -78,6 +81,7 @@ const getGraphModel = (
 	// console.log('gitBranches -> ', gitBranches);
 
 	// TODO: review if that code is correct and see if we need to add more data
+	let headRefSha: string | undefined;
 	for (const gitCommit of gitCommits) {
 		const graphRemotes: Remote[] = gitBranches
 			.filter((branch: GraphBranch) => branch.sha === gitCommit.sha && branch.remote)
@@ -105,6 +109,10 @@ const getGraphModel = (
 				};
 			});
 
+		if (graphHeads.some((head: Head) => head.isCurrentHead)) {
+			headRefSha = gitCommit.sha;
+		}
+
 		const graphTags: Tag[] = gitTags
 			.filter((tag: GraphTag) => tag.sha === gitCommit.sha)
 			.map((tag: GraphTag) => ({
@@ -123,6 +131,21 @@ const getGraphModel = (
 			heads: graphHeads,
 			remotes: graphRemotes,
 			tags: graphTags,
+		});
+	}
+
+	if (workDirStats !== undefined && Object.keys(workDirStats).length > 0) {
+		graphRows.unshift({
+			sha: 'work-dir-changes',
+			parents: headRefSha === undefined ? [] : [headRefSha],
+			author: '',
+			email: '',
+			date: new Date().getTime(),
+			message: '',
+			type: 'work-dir-changes',
+			heads: [],
+			remotes: [],
+			tags: []
 		});
 	}
 
@@ -197,6 +220,7 @@ export function GraphWrapper({
 	remotes = [],
 	tags = [],
 	branches = [],
+	workDirStats,
 	selectedRepository,
 	config,
 	log,
@@ -209,8 +233,9 @@ export function GraphWrapper({
 	previewBanner = true,
 	onDismissPreview,
 }: GraphWrapperProps) {
-	const [graphList, setGraphList] = useState(getGraphModel(commits, remotes, tags, branches));
+	const [graphList, setGraphList] = useState(getGraphModel(commits, remotes, tags, branches, workDirStats));
 	const [reposList, setReposList] = useState(repositories);
+	const [dirStats, setDirStats] = useState(workDirStats);
 	const [currentRepository, setCurrentRepository] = useState<GraphRepository | undefined>(
 		reposList.find(item => item.path === selectedRepository),
 	);
@@ -250,13 +275,14 @@ export function GraphWrapper({
 	}, [mainRef]);
 
 	function transformData(state: State) {
-		setGraphList(getGraphModel(state.commits, state.remotes, state.tags, state.branches));
+		setGraphList(getGraphModel(state.commits, state.remotes, state.tags, state.branches, state.workDirStats));
 		setReposList(state.repositories ?? []);
 		setCurrentRepository(reposList.find(item => item.path === state.selectedRepository));
 		setGraphColSettings(getGraphColSettingsModel(state.config));
 		setLogState(state.log);
 		setIsLoading(false);
 		setStyleProps(getStyleProps(state.mixedColumnColors));
+		setDirStats(state.workDirStats);
 	}
 
 	useEffect(() => {

@@ -670,11 +670,11 @@ export class LocalGitProvider implements GitProvider, Disposable {
 		// TODO@eamodio Align this with isTrackedCore?
 		if (!ref || (GitRevision.isUncommitted(ref) && !GitRevision.isUncommittedStaged(ref))) {
 			// Make sure the file exists in the repo
-			let data = await this.git.ls_files(repoPath, path);
+			let data = await this.git.ls_files(repoPath, { fileName: path });
 			if (data != null) return this.getAbsoluteUri(path, repoPath);
 
 			// Check if the file exists untracked
-			data = await this.git.ls_files(repoPath, path, { untracked: true });
+			data = await this.git.ls_files(repoPath, { fileName: path, untracked: true });
 			if (data != null) return this.getAbsoluteUri(path, repoPath);
 
 			return undefined;
@@ -754,7 +754,7 @@ export class LocalGitProvider implements GitProvider, Disposable {
 		let data;
 		let ref;
 		do {
-			data = await this.git.ls_files(repoPath, relativePath);
+			data = await this.git.ls_files(repoPath, { fileName: relativePath });
 			if (data != null) {
 				relativePath = splitSingle(data, '\n')[0];
 				break;
@@ -3591,14 +3591,14 @@ export class LocalGitProvider implements GitProvider, Disposable {
 				}
 
 				// Even if we have a ref, check first to see if the file exists (that way the cache will be better reused)
-				let tracked = Boolean(await this.git.ls_files(repoPath, relativePath));
+				let tracked = Boolean(await this.git.ls_files(repoPath, { fileName: relativePath }));
 				if (tracked) return [relativePath, repoPath];
 
 				if (repoPath) {
 					const [newRelativePath, newRepoPath] = splitPath(path, '', true);
 					if (newRelativePath !== relativePath) {
 						// If we didn't find it, check it as close to the file as possible (will find nested repos)
-						tracked = Boolean(await this.git.ls_files(newRepoPath, newRelativePath));
+						tracked = Boolean(await this.git.ls_files(newRepoPath, { fileName: newRelativePath }));
 						if (tracked) {
 							repository = await this.container.git.getOrOpenRepository(Uri.file(path), true);
 							if (repository != null) {
@@ -3611,10 +3611,10 @@ export class LocalGitProvider implements GitProvider, Disposable {
 				}
 
 				if (!tracked && ref && !GitRevision.isUncommitted(ref)) {
-					tracked = Boolean(await this.git.ls_files(repoPath, relativePath, { ref: ref }));
+					tracked = Boolean(await this.git.ls_files(repoPath, { fileName: relativePath, ref: ref }));
 					// If we still haven't found this file, make sure it wasn't deleted in that ref (i.e. check the previous)
 					if (!tracked) {
-						tracked = Boolean(await this.git.ls_files(repoPath, relativePath, { ref: `${ref}^` }));
+						tracked = Boolean(await this.git.ls_files(repoPath, { fileName: relativePath, ref: `${ref}^` }));
 					}
 				}
 
@@ -4059,5 +4059,46 @@ export class LocalGitProvider implements GitProvider, Disposable {
 		throw new Error(
 			`${prefix} requires a newer version of Git (>= ${version}) than is currently installed (${await this.git.version()}).${suffix}`,
 		);
+	}
+
+	@gate()
+	@log()
+	async getWorkDirStats(repoPath: string) {
+		const data = await this.git.ls_files(repoPath, {
+			deleted: true,
+			excludeStandard: true,
+			modified: true,
+			others: true,
+			showStatus: true
+		});
+
+		if (data == undefined) return undefined;
+		const stats = { added: 0, deleted: 0, modified: 0 };
+		const statusByFile: Record<string, any> = {};
+		const statLines: string[] = data.split('\n');
+		for (const line of statLines) {
+			const [status, file] = line.split(' ');
+			let incrementCount = false;
+			if (statusByFile[file] === undefined) {
+				statusByFile[file] = status;
+				incrementCount = true;
+			} else if (statusByFile[file] === 'C' && status !== 'C') {
+				statusByFile[file] = status;
+				stats.modified = stats.modified - 1;
+				incrementCount = true;
+			}
+
+			if (incrementCount) {
+				if (status === '?') {
+					stats.added = stats.added + 1;
+				} else if (status === 'C') {
+					stats.modified = stats.modified + 1;
+				} else if (status === 'R') {
+					stats.deleted = stats.deleted + 1;
+				}
+			}
+		}
+
+		return stats;
 	}
 }

@@ -15,6 +15,7 @@ import type { GitLog } from '../../../git/models/log';
 import type { GitRemote } from '../../../git/models/remote';
 import type { Repository, RepositoryChangeEvent } from '../../../git/models/repository';
 import type { GitTag } from '../../../git/models/tag';
+import type { GitWorkDirStats } from '../../../git/models/workDirStats';
 import { RepositoryFolderNode } from '../../../views/nodes/viewNode';
 import type { IpcMessage } from '../../../webviews/protocol';
 import { onIpc } from '../../../webviews/protocol';
@@ -261,6 +262,19 @@ export class GraphWebview extends WebviewBase<State> {
 		});
 	}
 
+	private async getWorkDirStats(): Promise<GitWorkDirStats | undefined> {
+		if (this.selectedRepository === undefined) {
+			return undefined;
+		}
+
+		const workDirStats = await this.container.git.getWorkDirStats(this.selectedRepository.uri);
+		if (workDirStats === undefined) {
+			return undefined;
+		}
+
+		return workDirStats;
+	}
+
 	private async getCommits(): Promise<{ log: GitLog; commits: GitCommit[] } | undefined> {
 		if (this.selectedRepository === undefined) {
 			return undefined;
@@ -404,6 +418,7 @@ export class GraphWebview extends WebviewBase<State> {
 		);
 
 		const theme = window.activeColorTheme;
+		const workDirStats = await this.getWorkDirStats();
 
 		return {
 			previewBanner: this.previewBanner,
@@ -425,6 +440,7 @@ export class GraphWebview extends WebviewBase<State> {
 			config: this.getConfig(),
 			log: log != null ? formatLog(log) : undefined,
 			nonce: this.cspNonce,
+            workDirStats: workDirStats,
 		};
 	}
 
