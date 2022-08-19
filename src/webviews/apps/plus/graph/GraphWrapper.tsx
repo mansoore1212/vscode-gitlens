@@ -234,7 +234,6 @@ export function GraphWrapper({
 }: GraphWrapperProps) {
 	const [graphList, setGraphList] = useState(getGraphModel(commits, remotes, tags, branches, workDirStats));
 	const [reposList, setReposList] = useState(repositories);
-	const [dirStats, setDirStats] = useState(workDirStats);
 	const [currentRepository, setCurrentRepository] = useState<GraphRepository | undefined>(
 		reposList.find(item => item.path === selectedRepository),
 	);
@@ -281,7 +280,6 @@ export function GraphWrapper({
 		setLogState(state.log);
 		setIsLoading(false);
 		setStyleProps(getStyleProps(state.mixedColumnColors));
-		setDirStats(state.workDirStats);
 	}
 
 	useEffect(() => {
