@@ -3614,7 +3614,9 @@ export class LocalGitProvider implements GitProvider, Disposable {
 					tracked = Boolean(await this.git.ls_files(repoPath, { fileName: relativePath, ref: ref }));
 					// If we still haven't found this file, make sure it wasn't deleted in that ref (i.e. check the previous)
 					if (!tracked) {
-						tracked = Boolean(await this.git.ls_files(repoPath, { fileName: relativePath, ref: `${ref}^` }));
+						tracked = Boolean(
+							await this.git.ls_files(repoPath, { fileName: relativePath, ref: `${ref}^` }),
+						);
 					}
 				}
 
@@ -4069,7 +4071,7 @@ export class LocalGitProvider implements GitProvider, Disposable {
 			excludeStandard: true,
 			modified: true,
 			others: true,
-			showStatus: true
+			showStatus: true,
 		});
 
 		if (data == undefined) return undefined;

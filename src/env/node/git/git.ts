@@ -1033,7 +1033,16 @@ export class Git {
 
 	async ls_files(
 		repoPath: string,
-		{ deleted, excludeStandard, fileName, modified, others, ref, showStatus, untracked }: {
+		{
+			deleted,
+			excludeStandard,
+			fileName,
+			modified,
+			others,
+			ref,
+			showStatus,
+			untracked,
+		}: {
 			deleted?: boolean;
 			excludeStandard?: boolean;
 			fileName?: string;
@@ -1041,7 +1050,7 @@ export class Git {
 			others?: boolean;
 			ref?: string;
 			showStatus?: boolean;
-			untracked?: boolean
+			untracked?: boolean;
 		} = {},
 	): Promise<string | undefined> {
 		const params = ['ls-files'];
@@ -1077,10 +1086,7 @@ export class Git {
 			params.push('--', fileName);
 		}
 
-		const data = await this.git<string>(
-			{ cwd: repoPath, errors: GitErrorHandling.Ignore },
-			...params,
-		);
+		const data = await this.git<string>({ cwd: repoPath, errors: GitErrorHandling.Ignore }, ...params);
 		return data.length === 0 ? undefined : data.trim();
 	}
 

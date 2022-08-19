@@ -440,7 +440,7 @@ export class GraphWebview extends WebviewBase<State> {
 			config: this.getConfig(),
 			log: log != null ? formatLog(log) : undefined,
 			nonce: this.cspNonce,
-            workDirStats: workDirStats,
+			workDirStats: workDirStats,
 		};
 	}
 
