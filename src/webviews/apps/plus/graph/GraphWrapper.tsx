@@ -7,7 +7,6 @@ import GraphContainer, {
 	type Head,
 	type Remote,
 	type Tag,
-	type WorkDirStats,
 } from '@gitkraken/gitkraken-components';
 import type { ReactElement } from 'react';
 import React, { createElement, useEffect, useRef, useState } from 'react';

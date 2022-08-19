@@ -203,9 +203,13 @@ export class GraphWebview extends WebviewBase<State> {
 
 		let commits: GitCommit[] | undefined;
 		if (ref != null) {
-			const commit = await this.selectedRepository?.getCommit(ref);
-			if (commit != null) {
-				commits = [commit];
+			if (ref === 'work-dir-changes') {
+				// TODO: Add action for selecting WIP row.
+			} else {
+				const commit = await this.selectedRepository?.getCommit(ref);
+				if (commit != null) {
+					commits = [commit];
+				}
 			}
 		}
 
@@ -267,7 +271,9 @@ export class GraphWebview extends WebviewBase<State> {
 			return undefined;
 		}
 
-		const workDirStats = await this.container.git.getWorkDirStats(this.selectedRepository.uri);
+		const workDirStats: GitWorkDirStats | undefined = await this.container.git.getWorkDirStats(
+			this.selectedRepository.uri,
+		);
 		if (workDirStats === undefined) {
 			return undefined;
 		}
