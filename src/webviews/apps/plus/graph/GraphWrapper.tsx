@@ -114,6 +114,8 @@ const createIconElements = (): { [key: string]: ReactElement<any> } => {
 		'deleted',
 		'renamed',
 		'resolved',
+		'show',
+		'hide'
 	];
 	const elementLibrary: { [key: string]: ReactElement<any> } = {};
 	iconList.forEach(iconKey => {
