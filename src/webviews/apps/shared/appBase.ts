@@ -89,7 +89,7 @@ export abstract class App<State = undefined> {
 		const id = nextIpcId();
 		this.log(`${this.appName}.sendCommand(${id}): name=${command.method}`);
 
-		return this.postMessage({ id: id, method: command.method, params: params });
+		this.postMessage({ id: id, method: command.method, params: params });
 	}
 
 	protected sendCommandWithCompletion<
@@ -113,7 +113,33 @@ export abstract class App<State = undefined> {
 			});
 		});
 
-		return this.postMessage({ id: id, method: command.method, params: params });
+		this.postMessage({ id: id, method: command.method, params: params });
+	}
+
+	protected async sendCommandWithCompletionPromise<
+		TCommand extends IpcCommandType<any>,
+		TCompletion extends IpcNotificationType<{ completionId: string }>,
+	>(
+		command: TCommand,
+		params: IpcMessageParams<TCommand>,
+		completion: TCompletion,
+	): Promise<IpcMessageParams<TCompletion>> {
+		const id = nextIpcId();
+		this.log(`${this.appName}.sendCommandWithCompletionPromise(${id}): name=${command.method}`);
+
+		const promise = new Promise<IpcMessageParams<TCompletion>>(resolve => {
+			const disposable = DOM.on(window, 'message', e => {
+				onIpc(completion, e.data as IpcMessage, params => {
+					if (params.completionId === id) {
+						disposable.dispose();
+						resolve(params);
+					}
+				});
+			});
+		});
+
+		this.postMessage({ id: id, method: command.method, params: params });
+		return promise;
 	}
 
 	protected setState(state: State) {

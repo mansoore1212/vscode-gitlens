@@ -4,6 +4,7 @@ import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 import type { GraphColumnConfig } from '../../../../config';
 import type { GitGraphRowType } from '../../../../git/models/graph';
+import type { SearchPattern } from '../../../../git/search';
 import type {
 	DismissBannerParams,
 	GraphRepository,
@@ -17,9 +18,11 @@ import {
 	DidChangeNotificationType,
 	DidChangeSelectionNotificationType,
 	DidChangeSubscriptionNotificationType,
+	DidSearchCommitsNotificationType,
 	DismissBannerCommandType,
 	GetMissingAvatarsCommandType,
 	GetMoreCommitsCommandType,
+	SearchCommitsCommandType,
 	UpdateColumnCommandType,
 	UpdateSelectedRepositoryCommandType as UpdateRepositorySelectionCommandType,
 	UpdateSelectionCommandType,
@@ -72,6 +75,7 @@ export class GraphApp extends App<State> {
 					)}
 					onMissingAvatars={(...params) => this.onGetMissingAvatars(...params)}
 					onMoreCommits={(...params) => this.onGetMoreCommits(...params)}
+					onSearchCommits={(...params) => this.onSearchCommits(...params)}
 					onSelectionChange={debounce(
 						(selection: { id: string; type: GitGraphRowType }[]) => this.onSelectionChanged(selection),
 						250,
@@ -182,6 +186,13 @@ export class GraphApp extends App<State> {
 				});
 				break;
 
+			case DidSearchCommitsNotificationType.method:
+				onIpc(DidSearchCommitsNotificationType, msg, params => {
+					this.setState({ ...this.state, searchResults: params });
+					this.refresh(this.state);
+				});
+				break;
+
 			case DidChangeSelectionNotificationType.method:
 				onIpc(DidChangeSelectionNotificationType, msg, params => {
 					this.setState({ ...this.state, selectedRows: params.selection });
@@ -273,8 +284,28 @@ export class GraphApp extends App<State> {
 		this.sendCommand(GetMissingAvatarsCommandType, { emails: emails });
 	}
 
-	private onGetMoreCommits() {
-		this.sendCommand(GetMoreCommitsCommandType, undefined);
+	private onGetMoreCommits(sha?: string, wait?: boolean) {
+		if (wait) {
+			return this.sendCommandWithCompletionPromise(
+				GetMoreCommitsCommandType,
+				{ sha: sha },
+				DidChangeCommitsNotificationType,
+			);
+		}
+
+		return this.sendCommand(GetMoreCommitsCommandType, { sha: sha });
+	}
+
+	private onSearchCommits(search: SearchPattern, wait?: boolean) {
+		if (wait) {
+			return this.sendCommandWithCompletionPromise(
+				SearchCommitsCommandType,
+				{ search: search },
+				DidSearchCommitsNotificationType,
+			);
+		}
+
+		return this.sendCommand(SearchCommitsCommandType, { search: search });
 	}
 
 	private onSelectionChanged(selection: { id: string; type: GitGraphRowType }[]) {
