@@ -385,6 +385,7 @@ export interface GraphConfig {
 	dateStyle: DateStyle | null;
 	defaultItemLimit: number;
 	highlightRowsOnRefHover: boolean;
+	enableGhostRefs: boolean;
 	pageItemLimit: number;
 	statusBar: {
 		enabled: boolean;

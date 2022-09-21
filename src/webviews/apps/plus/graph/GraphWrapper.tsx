@@ -498,7 +498,8 @@ export function GraphWrapper({
 								graphRows={graphRows}
 								hasMoreCommits={pagingState?.more}
 								height={mainHeight}
-								// highlightRowssOnRefHover={graphConfig?.highlightRowsOnRefHover}
+								highlightRowsOnRefHover={graphConfig?.highlightRowsOnRefHover}
+								enableGhostRefs={graphConfig?.enableGhostRefs}
 								isLoadingRows={isLoading}
 								isSelectedBySha={graphSelectedRows}
 								nonce={nonce}

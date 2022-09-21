@@ -64,6 +64,7 @@ export interface GraphComponentConfig {
 	dateStyle: DateStyle;
 	enableMultiSelection?: boolean;
 	highlightRowsOnRefHover?: boolean;
+	enableGhostRefs?: boolean;
 	shaLength?: number;
 }
 
